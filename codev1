@@ -1,0 +1,76 @@
+Version1 Code 
+
+import json
+
+TODO_FILE = "todos.json"
+
+def load_todos():
+    try:
+        with open(TODO_FILE, "r") as file:
+            todos = json.load(file)
+            # Ensure all todos have a priority key
+            for todo in todos:
+                if "priority" not in todo:
+                    todo["priority"] = "Medium"
+            return todos
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+def save_todos(todos):
+    with open(TODO_FILE, "w") as file:
+        json.dump(todos, file, indent=4)
+
+def add_todo(task, priority="Medium"):
+    todos = load_todos()
+    todos.append({"task": task, "done": False, "priority": priority})
+    save_todos(todos)
+    return "Task added!"
+
+def list_todos():
+    todos = load_todos()
+    if not todos:
+        return "No tasks available."
+    return "\n".join([f"{i+1}. {'[Done]' if todo['done'] else '[Pending]'} {todo['task']} (Priority: {todo.get('priority', 'Medium')})" for i, todo in enumerate(todos)])
+
+def mark_done(index):
+    todos = load_todos()
+    if 0 < index <= len(todos):
+        todos[index - 1]["done"] = True
+        save_todos(todos)
+        return "Task marked as done!"
+    return "Invalid task number."
+
+def run_app():
+    actions = ["Add Task", "List Tasks", "Mark Done", "Exit"]
+    predefined_inputs = ["1", "Sample Task", "High", "2", "3", "1", "4"]
+    input_index = 0
+
+    def mock_input(prompt):
+        nonlocal input_index
+        response = predefined_inputs[input_index] if input_index < len(predefined_inputs) else "4"
+        print(f"{prompt} {response}")
+        input_index += 1
+        return response
+
+    while True:
+        print("\n" + "\n".join([f"{i+1}. {action}" for i, action in enumerate(actions)]))
+        choice = mock_input("Choose an option:")
+        if choice == "1":
+            task = mock_input("Enter task:")
+            priority = mock_input("Enter priority (Low, Medium, High):")
+            print(add_todo(task, priority))
+        elif choice == "2":
+            print(list_todos())
+        elif choice == "3":
+            print(list_todos())
+            index = int(mock_input("Enter task number to mark as done:"))
+            print(mark_done(index))
+        elif choice == "4":
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice, try again.")
+
+if __name__ == "__main__":
+    run_app()
+
